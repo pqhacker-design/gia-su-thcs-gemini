@@ -86,7 +86,7 @@ st.markdown("---")
 
 # ---------- CHỨC NĂNG TẢI ẢNH LÊN (ĐA PHƯƠNG THỨC) ----------
 uploaded_file = st.file_uploader(
-    "Tải ảnh bài tập lên (Toán, Lý, Hóa, Bài tập khác)",
+    "Tải ảnh bài tập lên (Toán, Lý, Hóa, Ngữ Văn, Lịch sử, Địa lý, bài tập khác...)",
     type=["png", "jpg", "jpeg"],
     key="file_uploader" 
 )
@@ -142,6 +142,7 @@ if prompt := st.chat_input("Nhập câu hỏi (VD: 'Hướng dẫn em viết vă
     # 3. Hiển thị phản hồi của AI
     with st.chat_message("Gia Sư"):
         st.markdown(response.text)
+
 
 
 
