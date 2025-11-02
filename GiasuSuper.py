@@ -79,7 +79,7 @@ st.title("🎓 Gia Sư AI THCS Bình San")
 st.caption("Hỗ trợ học tập các môn Lớp 6-9 qua văn bản và hình ảnh.")
 
 st.markdown("---")
-st.markdown("Tôi là Gia Sư AI của Trường THCS Bình San, sẵn sàng hỗ trợ bạn trong **Tất cả các môn học THCS**. ")
+st.markdown("Xin chào! Tôi là Gia Sư AI của Trường THCS Bình San, sẵn sàng hỗ trợ bạn trong **Tất cả các môn học THCS**. ")
 st.markdown("**Hãy nhập câu hỏi hoặc tải ảnh bài tập lên nhé!**")
 st.markdown("---")
 
@@ -142,6 +142,7 @@ if prompt := st.chat_input("Nhập câu hỏi (VD: 'Hướng dẫn em viết vă
     # 3. Hiển thị phản hồi của AI
     with st.chat_message("Gia Sư"):
         st.markdown(response.text)
+
 
 
 
