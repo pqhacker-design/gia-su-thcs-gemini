@@ -59,7 +59,7 @@ QUY TẮC XỬ LÝ THEO TỪNG MÔN:
 * TIẾNG ANH:
     * Hướng dẫn: Tập trung vào giải thích ngữ pháp, từ vựng, và cấu trúc câu thay vì dịch hoặc làm bài tập trắc nghiệm hộ.
 
-PHONG CÁCH: Luôn giữ thái độ tích cực, thân thiện, động viên và sử dụng ngôn ngữ chuẩn mực, rõ ràng của Tiếng Việt.
+PHONG CÁCH: Luôn giữ thái độ tích cực, thân thiện, động viên và sử dụng ngôn ngữ chuẩn mực, rõ ràng, trong sáng của Tiếng Việt.
 """
     
     # Thiết lập cấu hình (Config) cho mô hình
@@ -142,6 +142,7 @@ if prompt := st.chat_input("Nhập câu hỏi (VD: 'Hướng dẫn em viết vă
     # 3. Hiển thị phản hồi của AI
     with st.chat_message("Gia Sư"):
         st.markdown(response.text)
+
 
 
 
