@@ -152,7 +152,7 @@ for message in st.session_state.chat_session.get_history():
         st.markdown(message.parts[0].text) 
 
 # Hộp nhập liệu cho người dùng
-if prompt := st.chat_input("Nhập câu hỏi (VD: 'Hướng dẫn em viết văn, giải toán hoặc trả lời câu hỏi...')"):
+if prompt := st.chat_input("Nhập câu hỏi (VD: 'Hướng dẫn em viết văn, giải toán...')"):
     
     # Chuẩn bị nội dung gửi đi (có thể bao gồm ảnh)
     contents = [prompt]
@@ -203,4 +203,5 @@ if prompt := st.chat_input("Nhập câu hỏi (VD: 'Hướng dẫn em viết vă
     # 3. Hiển thị phản hồi của AI
     with st.chat_message("Gia Sư"):
         st.markdown(response.text)
+
 
