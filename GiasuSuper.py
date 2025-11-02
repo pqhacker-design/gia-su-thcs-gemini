@@ -4,6 +4,8 @@ from google import genai
 from google.genai import types
 
 # ********** BƯỚC 1: Cấu Hình API Key & Sửa Lỗi Client Closed **********
+# Sử dụng @st.cache_resource để đảm bảo đối tượng genai.Client chỉ được tạo ra 
+# một lần duy nhất và không bị đóng, đồng thời đọc API Key từ Streamlit Secrets an toàn.
 @st.cache_resource
 def get_gemini_client():
     # Ưu tiên đọc từ Streamlit Secrets (cho phiên bản triển khai trên cloud)
@@ -14,8 +16,9 @@ def get_gemini_client():
     except (AttributeError, KeyError):
         # Nếu không có trong Secrets (ví dụ: đang chạy lokal), tìm trong biến môi trường
         try:
-            return genai.Client()
+            return genai.Client() # Nếu biến môi trường GOOGLE_API_KEY hoặc GEMINI_API_KEY được đặt
         except Exception:
+            # Nếu không tìm thấy Key ở đâu cả
             st.error("Lỗi: Không tìm thấy Gemini API Key. Vui lòng thiết lập biến môi trường (local) hoặc Streamlit Secrets (cloud).")
             st.stop()
 
@@ -26,7 +29,7 @@ client = get_gemini_client()
 # ********** BƯỚC 2: Định Nghĩa "Bộ Não" Đa Môn Học và Khởi Tạo Chat Session **********
 if "chat_session" not in st.session_state:
     
-    # ** SYSTEM INSTRUCTIONS: Gia Sư Toàn Diện THCS **
+    # ** SYSTEM INSTRUCTIONS MỚI: Hỗ Trợ Đa Môn Học THCS **
     system_instruction = """
 BẠN LÀ AI: Bạn là "Gia Sư Toàn Diện THCS", một trợ lý AI chuyên nghiệp, thân thiện, và kiên nhẫn, chuyên hỗ trợ học sinh Trung học cơ sở (Lớp 6 đến Lớp 9) tại Việt Nam trong MỌI môn học.
 
@@ -54,18 +57,20 @@ QUY TẮC XỬ LÝ THEO TỪNG MÔN:
 PHONG CÁCH: Luôn giữ thái độ tích cực, thân thiện, động viên và sử dụng ngôn ngữ chuẩn mực, rõ ràng của Tiếng Việt.
 """
     
+    # Thiết lập cấu hình (Config) cho mô hình
     config = types.GenerateContentConfig(
         system_instruction=system_instruction,
         temperature=0.5 
     )
     
+    # Khởi tạo phiên trò chuyện (Chat Session)
     st.session_state.chat_session = client.chats.create(
-        model="gemini-2.5-flash",
+        model="gemini-2.5-flash", # Hỗ trợ đa phương thức và tốc độ tốt
         config=config
     )
 
 # ********** BƯỚC 3: Xây Dựng Giao Diện Người Dùng (UI) **********
-st.title("🎓 Gia Sư AI - THCS Bình San")
+st.title("🎓 Gia Sư AI THCS Bình San")
 st.caption("Hỗ trợ học tập các môn Lớp 6-9 qua văn bản và hình ảnh.")
 
 st.markdown("---")
@@ -104,51 +109,31 @@ for message in st.session_state.chat_session.get_history():
     with st.chat_message(role):
         st.markdown(message.parts[0].text) 
 
-
-# ********** PHẦN ĐÃ SỬA: Gợi Ý Nhập Liệu Tuần Tự **********
-
-# 1. Định nghĩa danh sách các gợi ý (hints)
-prompt_hints = [
-    "Nhập câu hỏi, VD: Hướng dẫn em giải bài toán phương trình bậc hai.",
-    "Nhập câu hỏi, VD: Em cần viết đoạn kết bài văn phân tích nhân vật.",
-    "Nhập câu hỏi, VD: Giải thích giúp em cách dùng thì hiện tại hoàn thành trong Tiếng Anh.",
-    "Nhập câu hỏi, VD: Tóm tắt giúp em các ý chính về Phong trào Tây Sơn.",
-    "Nhập câu hỏi, VD: Công thức tính vận tốc trung bình là gì?"
-]
-
-# 2. Khởi tạo hoặc cập nhật chỉ số gợi ý (hint index)
-if 'hint_index' not in st.session_state:
-    st.session_state.hint_index = 0
-else:
-    # Tăng chỉ số và dùng toán tử modulo (%) để quay vòng
-    st.session_state.hint_index = (st.session_state.hint_index + 1) % len(prompt_hints)
-
-# 3. Lấy gợi ý hiện tại
-current_hint = prompt_hints[st.session_state.hint_index]
-
-
-# Hộp nhập liệu cho người dùng (sử dụng gợi ý động)
-if prompt := st.chat_input(current_hint):
+# Hộp nhập liệu cho người dùng
+if prompt := st.chat_input("Nhập câu hỏi (VD: 'Hướng dẫn em viết văn, giải toán hoặc trả lời câu hỏi...')"):
     
     # Chuẩn bị nội dung gửi đi (có thể bao gồm ảnh)
     contents = [prompt]
     
-    # Xử lý nội dung đa phương thức
+    # Nếu có ảnh được tải lên, thêm ảnh đó vào nội dung gửi đi (Đa phương thức)
     if uploaded_file is not None and image_part is not None:
-        contents.insert(0, image_part)
+        contents.insert(0, image_part) # Đặt ảnh lên trước văn bản
         
+        # Hiển thị ảnh nhỏ trong lịch sử chat
         with st.chat_message("Học sinh"):
             st.markdown(f"**Bài tập Đính kèm Ảnh:**")
             st.image(image_bytes, width=150)
-            st.markdown(prompt)
+            st.markdown(prompt) # Hiển thị câu hỏi văn bản
 
+    # Nếu không có ảnh, chỉ gửi văn bản
     else:
         st.chat_message("Học sinh").markdown(prompt)
     
-    # Gửi yêu cầu và nhận phản hồi từ Gemini
+    # 2. Gửi yêu cầu (gồm ảnh và/hoặc văn bản) và nhận phản hồi từ Gemini
     with st.spinner("Gia sư đang phân tích và soạn hướng dẫn..."):
+        # Sử dụng .send_message và truyền danh sách contents [ảnh, text] hoặc [text]
         response = st.session_state.chat_session.send_message(contents)
     
-    # Hiển thị phản hồi của AI
+    # 3. Hiển thị phản hồi của AI
     with st.chat_message("Gia Sư"):
         st.markdown(response.text)
