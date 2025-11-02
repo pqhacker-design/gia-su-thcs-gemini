@@ -152,7 +152,7 @@ Mục tiêu: Hướng dẫn học sinh THCS hiểu bài, giải bài tập, ôn 
     )
 
 # ********** BƯỚC 3: Xây Dựng Giao Diện Người Dùng (UI) **********
-st.title("🎓 Gia Sư AI THCS Bình San")
+st.title("🎓 Gia Sư AI - THCS Bình San")
 st.caption("Xin chào! Tôi là Gia Sư AI của Trường THCS Bình San, sẵn sàng hỗ trợ bạn trong **Tất cả các môn học THCS**.")
 
 st.markdown("---")
@@ -218,6 +218,7 @@ if prompt := st.chat_input("Nhập câu hỏi (VD: 'Hướng dẫn em viết vă
     # 3. Hiển thị phản hồi của AI
     with st.chat_message("Gia Sư"):
         st.markdown(response.text)
+
 
 
 
