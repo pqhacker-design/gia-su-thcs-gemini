@@ -253,7 +253,6 @@ st.divider()
 st.markdown(
     f"""
     <div class="custom-footer-container">
-        <a href="https://www.freecounterstat.com" title="hit counters"><img src="https://counter1.optistats.ovh/private/freecounterstat.php?c=1e27nsbqlp8mxhx5qpgra8ehnqcm2nf3" border="0" title="hit counters" alt="hit counters"></a>
         <br>
         Ứng dụng được phát triển bởi Trường THCS Bình San
     </div>
@@ -262,6 +261,7 @@ st.markdown(
 )
 
 # ***************************************************************
+
 
 
 
