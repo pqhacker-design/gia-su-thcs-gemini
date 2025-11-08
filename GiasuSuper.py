@@ -149,7 +149,7 @@ Mục tiêu: Hướng dẫn học sinh THCS hiểu bài, giải bài tập, ôn 
     
     # Khởi tạo phiên trò chuyện (Chat Session)
     st.session_state.chat_session = client.chats.create(
-        model="gemini-2.5-pro", # Hỗ trợ đa phương thức và tốc độ tốt
+        model="gemini-2.5-flash", # Hỗ trợ đa phương thức và tốc độ tốt
         config=config
     )
 
@@ -220,6 +220,7 @@ if prompt := st.chat_input("Nhập câu hỏi (VD: 'Hướng dẫn em viết vă
     # 3. Hiển thị phản hồi của AI
     with st.chat_message("Gia Sư"):
         st.markdown(response.text)
+
 
 
 
