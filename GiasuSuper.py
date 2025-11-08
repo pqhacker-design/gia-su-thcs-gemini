@@ -220,6 +220,26 @@ if prompt := st.chat_input("Nhập câu hỏi (VD: 'Hướng dẫn em viết vă
     # 3. Hiển thị phản hồi của AI
     with st.chat_message("Gia Sư"):
         st.markdown(response.text)
+# ********** PHẦN MỚI: BỘ ĐẾM SỐ LƯỢNG TRUY CẬP **********
+
+# Dùng st.divider() để tạo đường phân cách rõ ràng
+st.divider()
+
+st.markdown(
+    """
+    <div style="text-align: center; color: grey; font-size: 0.8em; margin-top: 20px;">
+        Ứng dụng này được phát triển bởi Trường THCS Bình San
+    </div>
+    <div style="text-align: center; margin-top: 10px;">
+        <a href="https://www.freecounterstat.com" title="hit counters">
+        <img src="https://counter1.optistats.ovh/private/freecounterstat.php?c=1e27nsbqlp8mxhx5qpgra8ehnqcm2nf3" border="0" title="hit counters" alt="hit counters">
+        </a>
+    </div>
+    """,
+    unsafe_allow_html=True
+)
+
+# ***************************************************************
 
 
 
