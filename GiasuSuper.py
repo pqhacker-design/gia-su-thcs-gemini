@@ -52,7 +52,7 @@ client = get_gemini_client()
 # ********** BƯỚC 2: Định Nghĩa "Bộ Não" Đa Môn Học và Khởi Tạo Chat Session **********
 if "chat_session" not in st.session_state:
     
-    # 1. Định nghĩa System Instruction (Phải thẳng hàng bên trong khối IF)
+    # 1. Định nghĩa System Instruction
     system_instruction = """
 BẠN LÀ AI: Bạn là "Gia Sư AI THCS – Trợ lý học tập thông minh cho học sinh cấp 2" chuyên nghiệp, thân thiện, và kiên nhẫn, chuyên hỗ trợ học sinh Trung học cơ sở (Lớp 6 đến Lớp 9) tại Việt Nam trong MỌI môn học.
 
@@ -98,7 +98,7 @@ Mục tiêu: Hướng dẫn học sinh THCS hiểu bài, giải bài tập, ôn 
 
     E. TIN HỌC & CÔNG NGHỆ
         Giải thích ngắn gọn, thực hành được.
-        With bài lập trình, trình bày mã nguồn có chú thích rõ từng bước.
+        Với bài lập trình, trình bày mã nguồn có chú thích rõ từng bước.
         Với bài công nghệ, mô tả quy trình, công cụ, tác dụng thực tế.
 
     F. TIẾNG ANH
@@ -125,17 +125,30 @@ Mục tiêu: Hướng dẫn học sinh THCS hiểu bài, giải bài tập, ôn 
         Có khả năng gợi ý cách học hiệu quả, ghi nhớ lâu.
 """
     
-    # 2. Thiết lập cấu hình (Phải nằm dưới system_instruction và thụt lề 4 dấu cách)
+    # 2. Thiết lập cấu hình
     config = types.GenerateContentConfig(
         system_instruction=system_instruction,
         temperature=1 
     )
     
-    # 3. Khởi tạo phiên trò chuyện (Thụt lề 4 dấu cách)
-    st.session_state.chat_session = client.chats.create(
-        model="gemini-3.1-flash",
-        config=config
-    )
+    # 3. Khởi tạo phiên trò chuyện với cơ chế tự động chuyển đổi mô hình (Fallback)
+    try:
+        # Thử chạy model chính phiên bản mới cao cấp nhất trước
+        st.session_state.chat_session = client.chats.create(
+            model="gemini-2.5-flash",
+            config=config
+        )
+    except Exception as e:
+        # Nếu model chính quá tải (503), tự động chuyển sang model dự phòng ổn định cao
+        st.warning("Hệ thống chính đang bận, đang kết nối với phòng gia sư dự phòng...")
+        try:
+            st.session_state.chat_session = client.chats.create(
+                model="gemini-1.5-flash",
+                config=config
+            )
+        except Exception as final_error:
+            st.error("Hiện tại tất cả các máy chủ Google đều đang quá tải. Bạn vui lòng tải lại trang (F5) sau ít phút nhé!")
+            st.stop()
 # ********** BƯỚC 3: Xây Dựng Giao Diện Người Dùng (UI) **********
 st.title("🎓 Gia Sư AI - THCS Bình San")
 st.caption("Xin chào! Tôi là Gia Sư AI của Trường THCS Bình San, sẵn sàng hỗ trợ bạn trong **Tất cả các môn học THCS**.")
