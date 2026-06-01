@@ -210,12 +210,21 @@ if prompt := st.chat_input("Nhập câu hỏi (VD: 'Hướng dẫn em viết vă
     
     # 2. Gửi yêu cầu (gồm ảnh và/hoặc văn bản) và nhận phản hồi từ Gemini
     with st.spinner("Gia sư đang phân tích và soạn hướng dẫn..."):
-        # Sử dụng .send_message và truyền danh sách contents [ảnh, text] hoặc [text]
-        response = st.session_state.chat_session.send_message(contents)
-    
-    # 3. Hiển thị phản hồi của AI
-    with st.chat_message("Gia Sư"):
-        st.markdown(response.text)
+        try:
+            # Gửi tin nhắn bình thường
+            response = st.session_state.chat_session.send_message(contents)
+            
+            # 3. Hiển thị phản hồi của AI nếu thành công
+            with st.chat_message("Gia Sư"):
+                st.markdown(response.text)
+                
+        except Exception as e:
+            # Kiểm tra nếu lỗi do server nghẽn (503 hoặc UNAVAILABLE)
+            if "503" in str(e) or "UNAVAILABLE" in str(e):
+                st.error("😥 Máy chủ Google hiện tại đang quá tải cục bộ do số lượng truy cập lớn. Gia sư chưa nhận được câu hỏi, bạn vui lòng nhấn nút Gửi hoặc nhập lại câu hỏi sau 10-15 giây nhé!")
+            else:
+                # Các lỗi client hoặc lỗi khác
+                st.error(f"Đã xảy ra lỗi không mong muốn: {e}")
 # ********** PHẦN MỚI: BỘ ĐẾM SỐ LƯỢNG TRUY CẬP **********
 
 # Dùng st.divider() để tạo đường phân cách rõ ràng
