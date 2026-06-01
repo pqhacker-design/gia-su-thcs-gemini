@@ -171,11 +171,8 @@ Mục tiêu: Hướng dẫn học sinh THCS hiểu bài, giải bài tập, ôn 
     )
     
     # Khởi tạo phiên trò chuyện (Chat Session)
-    st.session_state.chat_session = client.chats.create(
-        model="gemini-2.5-flash", # Hỗ trợ đa phương thức và tốc độ tốt
-        config=config
-    )
-
+    if "chat_session" not in st.session_state:
+    st.session_state.chat_session = client.chats.create(model="gemini-2.5-flash")
 # ********** BƯỚC 3: Xây Dựng Giao Diện Người Dùng (UI) **********
 st.title("🎓 Gia Sư AI - THCS Bình San")
 st.caption("Xin chào! Tôi là Gia Sư AI của Trường THCS Bình San, sẵn sàng hỗ trợ bạn trong **Tất cả các môn học THCS**.")
