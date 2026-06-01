@@ -164,15 +164,18 @@ Mục tiêu: Hướng dẫn học sinh THCS hiểu bài, giải bài tập, ôn 
         Có khả năng gợi ý cách học hiệu quả, ghi nhớ lâu.
 """
     
-    # Thiết lập cấu hình (Config) cho mô hình
-    config = types.GenerateContentConfig(
-        system_instruction=system_instruction,
-        temperature=1 
-    )
+# Thiết lập cấu hình (Config) cho mô hình
+config = types.GenerateContentConfig(
+    system_instruction=system_instruction,
+    temperature=1 
+)
     
-    # Khởi tạo phiên trò chuyện (Chat Session)
-    if "chat_session" not in st.session_state:
-    st.session_state.chat_session = client.chats.create(model="gemini-2.5-flash")
+# Khởi tạo phiên trò chuyện (Chat Session) - ĐÃ SỬA LỖI THỤT LỀ VÀ CONFIG
+if "chat_session" not in st.session_state:
+    st.session_state.chat_session = client.chats.create(
+        model="gemini-2.5-flash",
+        config=config
+    )
 # ********** BƯỚC 3: Xây Dựng Giao Diện Người Dùng (UI) **********
 st.title("🎓 Gia Sư AI - THCS Bình San")
 st.caption("Xin chào! Tôi là Gia Sư AI của Trường THCS Bình San, sẵn sàng hỗ trợ bạn trong **Tất cả các môn học THCS**.")
