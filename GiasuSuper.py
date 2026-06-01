@@ -135,7 +135,7 @@ Mục tiêu: Hướng dẫn học sinh THCS hiểu bài, giải bài tập, ôn 
     try:
         # Thử chạy model chính phiên bản mới cao cấp nhất trước
         st.session_state.chat_session = client.chats.create(
-            model="gemini-2.5-flash",
+            model="gemini-3.0-flash",
             config=config
         )
     except Exception as e:
@@ -143,7 +143,7 @@ Mục tiêu: Hướng dẫn học sinh THCS hiểu bài, giải bài tập, ôn 
         st.warning("Hệ thống chính đang bận, đang kết nối với phòng gia sư dự phòng...")
         try:
             st.session_state.chat_session = client.chats.create(
-                model="gemini-1.5-flash",
+                model="gemini-2.5-flash",
                 config=config
             )
         except Exception as final_error:
