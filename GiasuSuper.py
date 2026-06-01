@@ -133,7 +133,7 @@ Mục tiêu: Hướng dẫn học sinh THCS hiểu bài, giải bài tập, ôn 
     
     # 3. Khởi tạo phiên trò chuyện (Thụt lề 4 dấu cách)
     st.session_state.chat_session = client.chats.create(
-        model="gemini-2.5-flash",
+        model="gemini-3.1-flash",
         config=config
     )
 # ********** BƯỚC 3: Xây Dựng Giao Diện Người Dùng (UI) **********
