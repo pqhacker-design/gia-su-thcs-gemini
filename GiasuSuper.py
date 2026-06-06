@@ -27,32 +27,22 @@ st.markdown("""
 """, unsafe_allow_html=True)
 # **********************************************
 # ********** BƯỚC 1: Cấu Hình API Key & Sửa Lỗi Client Closed **********
-# Sử dụng @st.cache_resource để đảm bảo đối tượng genai.Client chỉ được tạo ra 
-# một lần duy nhất và không bị đóng, đồng thời đọc API Key từ Streamlit Secrets an toàn.
 @st.cache_resource
 def get_gemini_client():
-    # Ưu tiên đọc từ Streamlit Secrets (cho phiên bản triển khai trên cloud)
     try:
         api_key = st.secrets["GEMINI_API_KEY"]
         return genai.Client(api_key=api_key)
-        
     except (AttributeError, KeyError):
-        # Nếu không có trong Secrets (ví dụ: đang chạy lokal), tìm trong biến môi trường
         try:
-            return genai.Client() # Nếu biến môi trường GOOGLE_API_KEY hoặc GEMINI_API_KEY được đặt
+            return genai.Client() 
         except Exception:
-            # Nếu không tìm thấy Key ở đâu cả
             st.error("Lỗi: Không tìm thấy Gemini API Key. Vui lòng thiết lập biến môi trường (local) hoặc Streamlit Secrets (cloud).")
             st.stop()
 
-# Lấy client đã được cache
 client = get_gemini_client()
-
 
 # ********** BƯỚC 2: Định Nghĩa "Bộ Não" Đa Môn Học và Khởi Tạo Chat Session **********
 if "chat_session" not in st.session_state:
-    
-    # 1. Định nghĩa System Instruction
     system_instruction = """
 ạn là "Gia Sư AI Việt Nam" – một gia sư cá nhân thông minh, thân thiện, kiên nhẫn và đáng tin cậy dành cho học sinh từ lớp 1 đến lớp 12.
 
@@ -343,21 +333,17 @@ Tự tin hơn.
 Có thể tự giải các bài tương tự mà không cần xem đáp án.
 """
     
-    # 2. Thiết lập cấu hình
     config = types.GenerateContentConfig(
         system_instruction=system_instruction,
         temperature=1 
     )
     
-    # 3. Khởi tạo phiên trò chuyện với cơ chế tự động chuyển đổi mô hình (Fallback)
     try:
-        # Thử chạy model chính phiên bản mới cao cấp nhất trước
         st.session_state.chat_session = client.chats.create(
             model="gemini-3.5-flash",
             config=config
         )
     except Exception as e:
-        # Nếu model chính quá tải (503), tự động chuyển sang model dự phòng ổn định cao
         st.warning("Hệ thống chính đang bận, đang kết nối với phòng gia sư dự phòng...")
         try:
             st.session_state.chat_session = client.chats.create(
@@ -367,89 +353,87 @@ Có thể tự giải các bài tương tự mà không cần xem đáp án.
         except Exception as final_error:
             st.error("Hiện tại tất cả các máy chủ Google đều đang quá tải. Bạn vui lòng tải lại trang (F5) sau ít phút nhé!")
             st.stop()
+
 # ********** BƯỚC 3: Xây Dựng Giao Diện Người Dùng (UI) **********
 st.title("🎓 Gia Sư AI - THCS Bình San")
 st.caption("Xin chào! Tôi là Gia Sư AI Việt Nam, sẵn sàng hỗ trợ bạn trong **Tất cả các môn học từ TH đến THPT**.")
 
 st.markdown("---")
-st.markdown("**Hãy nhập câu hỏi hoặc tải ảnh bài tập lên nhé!**")
+st.markdown("**Hãy nhập câu hỏi hoặc tải tài liệu (Ảnh/PDF) lên nhé!**")
 st.markdown("---")
 
-
-# ---------- CHỨC NĂNG TẢI ẢNH LÊN (ĐA PHƯƠNG THỨC) ----------
+# ---------- CHỨC NĂNG TẢI FILE LÊN (ẢNH & PDF) ----------
+# CẢI TIẾN: Thêm "pdf" vào danh sách type chấp nhận
 uploaded_file = st.file_uploader(
-    "Tải ảnh bài tập lên (Toán, Lý, Hóa, Ngữ Văn, Lịch sử, Địa lý, bài tập khác...)",
-    type=["png", "jpg", "jpeg"],
+    "Tải ảnh bài tập hoặc file PDF tài liệu lên (Toán, Lý, Hóa, Văn, Anh...)",
+    type=["png", "jpg", "jpeg", "pdf"],
     key="file_uploader" 
 )
 
-image_part = None 
-image_bytes = None
+file_part = None 
+file_bytes = None
+
 if uploaded_file is not None:
-    image_bytes = uploaded_file.read()
+    file_bytes = uploaded_file.read()
     
-    # Tạo đối tượng Part cho Gemini API
-    image_part = types.Part.from_bytes(
-        data=image_bytes,
+    # Tạo đối tượng Part cho Gemini API (Tự động nhận diện MIME type từ file)
+    file_part = types.Part.from_bytes(
+        data=file_bytes,
         mime_type=uploaded_file.type
     )
     
-    # Hiển thị ảnh đã tải lên ở cột bên lề để người dùng dễ theo dõi
-    st.sidebar.image(image_bytes, caption='Ảnh bài tập đã tải lên', width='stretch')
-    st.info("Ảnh đã tải lên thành công. Vui lòng nhập câu hỏi hoặc yêu cầu hướng dẫn bên dưới.")
+    # CẢI TIẾN: Hiển thị bản xem trước trực quan tùy theo loại file (Ảnh hoặc PDF)
+    if uploaded_file.type == "application/pdf":
+        st.sidebar.warning("📄 Đã đính kèm file PDF: " + uploaded_file.name)
+        st.info(f"Đã nhận file PDF '**{uploaded_file.name}**'. Nhập câu hỏi bên dưới để Gia sư hỗ trợ đọc và giải bài trong file nhé.")
+    else:
+        st.sidebar.image(file_bytes, caption='Ảnh bài tập đã tải lên', width='stretch')
+        st.info("Ảnh đã tải lên thành công. Vui lòng nhập câu hỏi hoặc yêu cầu hướng dẫn bên dưới.")
 # ----------------------------------------------------------------
 
 # Hiển thị lịch sử chat
 for message in st.session_state.chat_session.get_history():
     role = "Gia Sư" if message.role == "model" else "Học sinh"
-    
     with st.chat_message(role):
         st.markdown(message.parts[0].text) 
 
 # Hộp nhập liệu cho người dùng
-if prompt := st.chat_input("Nhập câu hỏi (VD: 'Hướng dẫn em viết văn, giải toán hoặc trả lời câu hỏi...')"):
+if prompt := st.chat_input("Nhập câu hỏi (VD: 'Giải giúp em câu 1 trong file', 'Tóm tắt bài học này'...)"):
     
-    # Chuẩn bị nội dung gửi đi (có thể bao gồm ảnh)
+    # Chuẩn bị nội dung gửi đi (có thể bao gồm file)
     contents = [prompt]
     
-    # Nếu có ảnh được tải lên, thêm ảnh đó vào nội dung gửi đi (Đa phương thức)
-    if uploaded_file is not None and image_part is not None:
-        contents.insert(0, image_part) # Đặt ảnh lên trước văn bản
+    # CẢI TIẾN: Xử lý gửi đi linh hoạt cho cả ảnh và file PDF
+    if uploaded_file is not None and file_part is not None:
+        contents.insert(0, file_part) # Đặt file lên trước văn bản câu hỏi
         
-        # Hiển thị ảnh nhỏ trong lịch sử chat
+        # Hiển thị lại file trong lịch sử chat của học sinh một cách thẩm mỹ
         with st.chat_message("Học sinh"):
-            st.markdown(f"**Bài tập Đính kèm Ảnh:**")
-            st.image(image_bytes, width=150)
+            if uploaded_file.type == "application/pdf":
+                st.markdown(f"📎 **Tài liệu đính kèm (PDF):** `{uploaded_file.name}`")
+            else:
+                st.markdown(f"📸 **Bài tập Đính kèm Ảnh:**")
+                st.image(file_bytes, width=150)
             st.markdown(prompt) # Hiển thị câu hỏi văn bản
-
-    # Nếu không có ảnh, chỉ gửi văn bản
     else:
         st.chat_message("Học sinh").markdown(prompt)
     
-    # 2. Gửi yêu cầu (gồm ảnh và/hoặc văn bản) và nhận phản hồi từ Gemini
-    with st.spinner("Gia sư đang phân tích và soạn hướng dẫn..."):
+    # Gửi yêu cầu và nhận phản hồi từ Gemini
+    with st.spinner("Gia sư đang phân tích tài liệu và soạn hướng dẫn..."):
         try:
-            # Gửi tin nhắn bình thường
             response = st.session_state.chat_session.send_message(contents)
             
-            # 3. Hiển thị phản hồi của AI nếu thành công
             with st.chat_message("Gia Sư"):
                 st.markdown(response.text)
                 
         except Exception as e:
-            # Kiểm tra nếu lỗi do server nghẽn (503 hoặc UNAVAILABLE)
             if "503" in str(e) or "UNAVAILABLE" in str(e):
-                st.error("😥 Máy chủ Google hiện tại đang quá tải cục bộ do số lượng truy cập lớn. Gia sư chưa nhận được câu hỏi, bạn vui lòng nhấn nút Gửi hoặc nhập lại câu hỏi sau 10-15 giây nhé!")
+                st.error("😥 Máy chủ Google hiện tại đang quá tải cục bộ. Gia sư chưa nhận được câu hỏi, bạn vui lòng nhấn nút Gửi hoặc nhập lại câu hỏi sau 10-15 giây nhé!")
             else:
-                # Các lỗi client hoặc lỗi khác
                 st.error(f"Đã xảy ra lỗi không mong muốn: {e}")
-# ********** PHẦN MỚI: BỘ ĐẾM SỐ LƯỢNG TRUY CẬP **********
 
-# Dùng st.divider() để tạo đường phân cách rõ ràng
+# ********** PHẦN FOOTER CỐ ĐỊNH Ở DƯỚI CÙNG **********
 st.divider()
-
-# ********** PHẦN MỚI: BỘ ĐẾM NẰM CỐ ĐỊNH Ở DƯỚI CÙNG **********
-
 st.markdown(
     f"""
     <div class="custom-footer-container">
@@ -459,17 +443,3 @@ st.markdown(
     """,
     unsafe_allow_html=True
 )
-
-# ***************************************************************
-
-
-
-
-
-
-
-
-
-
-
-
