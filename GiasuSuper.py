@@ -432,6 +432,23 @@ if prompt := st.chat_input("Nhập câu hỏi (VD: 'Giải giúp em câu 1 trong
             else:
                 st.error(f"Đã xảy ra lỗi không mong muốn: {e}")
 
+# ********** PHẦN TỰ ĐỘNG CUỘN XUỐNG DƯỚI (AUTO-SCROLL) **********
+# Đoạn mã JavaScript này sẽ tự động cuộn trình duyệt xuống dưới cùng mỗi khi có tin nhắn mới
+st.components.v1.html(
+    """
+    <script>
+        // Chờ một chút để giao diện kịp render xong rồi cuộn
+        setTimeout(function() {
+            window.parent.postMessage({type: 'streamlit:scroll_to_bottom'}, '*');
+            // Cách 2 dự phòng nếu cách trên bị chặn bởi iframe:
+            window.parent.scrollTo(0, window.parent.document.body.scrollHeight);
+        }, 300); 
+    </script>
+    """,
+    height=0, # Đặt chiều cao bằng 0 để không làm lộ khoảng trống trên giao diện
+)
+# ***************************************************************
+
 # ********** PHẦN FOOTER CỐ ĐỊNH Ở DƯỚI CÙNG **********
 st.divider()
 st.markdown(
