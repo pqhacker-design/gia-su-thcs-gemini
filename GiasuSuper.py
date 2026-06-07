@@ -3,29 +3,69 @@ import os
 from google import genai
 from google.genai import types
 
-# *** CSS TÙY CHỈNH ĐỂ TẠO FOOTER CỐ ĐỊNH ***
+# *** CSS TÙY CHỈNH ĐỂ TẠO GIAO DIỆN CHAT VÀ FOOTER CỐ ĐỊNH ***
 st.markdown("""
 <style>
-    /* Ẩn footer mặc định của Streamlit (Deploy button, Made with Streamlit) */
+    /* Ẩn footer mặc định của Streamlit */
     footer {visibility: hidden;}
     
-    /* Định nghĩa khu vực footer mới (Bộ đếm) */
+    /* Định nghĩa khu vực footer mới */
     .custom-footer-container {
-        position: fixed; /* Cố định vị trí */
-        bottom: 0px; /* Nằm ngay sát đáy trình duyệt */
+        position: fixed;
+        bottom: 0px;
         left: 0;
         width: 100%;
-        background-color: white; /* Đảm bảo footer có nền trắng để nổi lên */
+        background-color: white;
         padding: 5px 0;
-        z-index: 999999; /* Đảm bảo nó nằm trên tất cả các thành phần khác */
-        border-top: 1px solid #f0f2f6; /* Đường phân cách mờ */
+        z-index: 999999;
+        border-top: 1px solid #f0f2f6;
         text-align: center;
         font-size: 0.7em;
         color: grey;
     }
+
+    /* TÙY CHỈNH GIAO DIỆN BONG BÓNG CHAT */
+    /* Cấu trúc chung cho vùng chứa tin nhắn */
+    [data-testid="stChatMessage"] {
+        border-radius: 15px;
+        padding: 10px 15px;
+        margin-bottom: 10px;
+        width: fit-content;
+        max-width: 75%;
+    }
+
+    /* Tin nhắn của Học sinh (User) -> Nằm bên PHẢI, nền màu Xanh dương, chữ trắng */
+    [data-testid="stChatMessage"]:has([data-testid="stChatMessageAvatarUser"]) {
+        margin-left: auto !important; /* Đẩy sang bên phải */
+        background-color: #0084FF !important; /* Màu xanh giống Messenger/Zalo */
+        color: white !important;
+    }
+    
+    /* Đổi màu chữ markdown bên trong chat của Học sinh sang trắng để dễ đọc */
+    [data-testid="stChatMessage"]:has([data-testid="stChatMessageAvatarUser"]) p {
+        color: white !important;
+    }
+
+    /* Tin nhắn của Gia Sư (Assistant) -> Nằm bên TRÁI, nền màu Xám nhạt, chữ đen */
+    [data-testid="stChatMessage"]:has([data-testid="stChatMessageAvatarAssistant"]) {
+        margin-right: auto !important; /* Đẩy sang bên trái */
+        background-color: #F1F0F0 !important; /* Màu xám nhạt */
+        color: black !important;
+    }
+    
+    /* Ẩn bớt khoảng trống avatar mặc định để bong bóng chat gọn hơn */
+    [data-testid="stChatMessageAvatarUser"], [data-testid="stChatMessageAvatarAssistant"] {
+        display: none !important;
+    }
+    
+    /* Căn chỉnh lại padding của vùng nội dung sau khi ẩn avatar */
+    [data-testid="stChatMessageContent"] {
+        padding-top: 0px !important;
+    }
 </style>
 """, unsafe_allow_html=True)
 # **********************************************
+
 # ********** BƯỚC 1: Cấu Hình API Key & Sửa Lỗi Client Closed **********
 @st.cache_resource
 def get_gemini_client():
@@ -43,6 +83,7 @@ client = get_gemini_client()
 
 # ********** BƯỚC 2: Định Nghĩa "Bộ Não" Đa Môn Học và Khởi Tạo Chat Session **********
 if "chat_session" not in st.session_state:
+    # (Giữ nguyên system_instruction cũ của bạn để đảm bảo tính năng)
     system_instruction = """
 Bạn là "Gia Sư AI Việt Nam" – một gia sư cá nhân thông minh, thân thiện, kiên nhẫn và đáng tin cậy dành cho học sinh từ lớp 1 đến lớp 12.
 
@@ -363,7 +404,6 @@ st.markdown("**Hãy nhập câu hỏi hoặc tải tài liệu (Ảnh/PDF) lên 
 st.markdown("---")
 
 # ---------- CHỨC NĂNG TẢI FILE LÊN (ẢNH & PDF) ----------
-# CẢI TIẾN: Thêm "pdf" vào danh sách type chấp nhận
 uploaded_file = st.file_uploader(
     "Tải ảnh bài tập hoặc file PDF tài liệu lên (Toán, Lý, Hóa, Văn, Anh...)",
     type=["png", "jpg", "jpeg", "pdf"],
@@ -375,14 +415,11 @@ file_bytes = None
 
 if uploaded_file is not None:
     file_bytes = uploaded_file.read()
-    
-    # Tạo đối tượng Part cho Gemini API (Tự động nhận diện MIME type từ file)
     file_part = types.Part.from_bytes(
         data=file_bytes,
         mime_type=uploaded_file.type
     )
     
-    # CẢI TIẾN: Hiển thị bản xem trước trực quan tùy theo loại file (Ảnh hoặc PDF)
     if uploaded_file.type == "application/pdf":
         st.sidebar.warning("📄 Đã đính kèm file PDF: " + uploaded_file.name)
         st.info(f"Đã nhận file PDF '**{uploaded_file.name}**'. Nhập câu hỏi bên dưới để Gia sư hỗ trợ đọc và giải bài trong file nhé.")
@@ -392,38 +429,36 @@ if uploaded_file is not None:
 # ----------------------------------------------------------------
 
 # Hiển thị lịch sử chat
+# LƯU Ý QUAN TRỌNG: Đổi tên role thành "user" và "assistant" để Streamlit nhận diện đúng class CSS cấp cho Avatar
 for message in st.session_state.chat_session.get_history():
-    role = "Gia Sư" if message.role == "model" else "Học sinh"
+    role = "assistant" if message.role == "model" else "user"
     with st.chat_message(role):
         st.markdown(message.parts[0].text) 
 
 # Hộp nhập liệu cho người dùng
 if prompt := st.chat_input("Nhập câu hỏi (VD: 'Giải giúp em câu 1 trong file', 'Tóm tắt bài học này'...)"):
     
-    # Chuẩn bị nội dung gửi đi (có thể bao gồm file)
     contents = [prompt]
     
-    # CẢI TIẾN: Xử lý gửi đi linh hoạt cho cả ảnh và file PDF
     if uploaded_file is not None and file_part is not None:
-        contents.insert(0, file_part) # Đặt file lên trước văn bản câu hỏi
+        contents.insert(0, file_part)
         
-        # Hiển thị lại file trong lịch sử chat của học sinh một cách thẩm mỹ
-        with st.chat_message("Học sinh"):
+        with st.chat_message("user"):
             if uploaded_file.type == "application/pdf":
                 st.markdown(f"📎 **Tài liệu đính kèm (PDF):** `{uploaded_file.name}`")
             else:
                 st.markdown(f"📸 **Bài tập Đính kèm Ảnh:**")
                 st.image(file_bytes, width=150)
-            st.markdown(prompt) # Hiển thị câu hỏi văn bản
+            st.markdown(prompt)
     else:
-        st.chat_message("Học sinh").markdown(prompt)
+        st.chat_message("user").markdown(prompt)
     
     # Gửi yêu cầu và nhận phản hồi từ Gemini
     with st.spinner("Gia sư đang phân tích tài liệu và soạn hướng dẫn..."):
         try:
             response = st.session_state.chat_session.send_message(contents)
             
-            with st.chat_message("Gia Sư"):
+            with st.chat_message("assistant"):
                 st.markdown(response.text)
                 
         except Exception as e:
@@ -433,19 +468,16 @@ if prompt := st.chat_input("Nhập câu hỏi (VD: 'Giải giúp em câu 1 trong
                 st.error(f"Đã xảy ra lỗi không mong muốn: {e}")
 
 # ********** PHẦN TỰ ĐỘNG CUỘN XUỐNG DƯỚI (AUTO-SCROLL) **********
-# Đoạn mã JavaScript này sẽ tự động cuộn trình duyệt xuống dưới cùng mỗi khi có tin nhắn mới
 st.components.v1.html(
     """
     <script>
-        // Chờ một chút để giao diện kịp render xong rồi cuộn
         setTimeout(function() {
             window.parent.postMessage({type: 'streamlit:scroll_to_bottom'}, '*');
-            // Cách 2 dự phòng nếu cách trên bị chặn bởi iframe:
             window.parent.scrollTo(0, window.parent.document.body.scrollHeight);
         }, 300); 
     </script>
     """,
-    height=0, # Đặt chiều cao bằng 0 để không làm lộ khoảng trống trên giao diện
+    height=0,
 )
 # ***************************************************************
 
