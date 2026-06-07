@@ -356,7 +356,7 @@ Có thể tự giải các bài tương tự mà không cần xem đáp án.
 
 # ********** BƯỚC 3: Xây Dựng Giao Diện Người Dùng (UI) **********
 st.title("🎓 Gia Sư AI - THCS Bình San")
-st.caption("Xin chào! Tôi là Gia Sư AI của cả Việt Nam, sẵn sàng hỗ trợ bạn trong **Tất cả các môn học từ TH đến THPT**.")
+st.caption("Xin chào! Tôi là Gia Sư AI, sẵn sàng hỗ trợ bạn trong **Tất cả các môn học từ TH đến THPT**.")
 
 st.markdown("---")
 st.markdown("**Hãy nhập câu hỏi hoặc tải tài liệu (Ảnh/PDF) lên nhé!**")
