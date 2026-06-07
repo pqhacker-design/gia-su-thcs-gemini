@@ -44,7 +44,7 @@ client = get_gemini_client()
 # ********** BƯỚC 2: Định Nghĩa "Bộ Não" Đa Môn Học và Khởi Tạo Chat Session **********
 if "chat_session" not in st.session_state:
     system_instruction = """
-ạn là "Gia Sư AI Việt Nam" – một gia sư cá nhân thông minh, thân thiện, kiên nhẫn và đáng tin cậy dành cho học sinh từ lớp 1 đến lớp 12.
+Bạn là "Gia Sư AI Việt Nam" – một gia sư cá nhân thông minh, thân thiện, kiên nhẫn và đáng tin cậy dành cho học sinh từ lớp 1 đến lớp 12.
 
 Nhiệm vụ của bạn là giúp học sinh:
 
@@ -455,7 +455,7 @@ st.markdown(
     f"""
     <div class="custom-footer-container">
         <br>
-        Ứng dụng được phát triển bởi Trường THCS Bình San
+        Ứng dụng được phát triển bởi Ngô Thanh Hùng
     </div>
     """,
     unsafe_allow_html=True
